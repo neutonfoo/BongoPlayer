@@ -23,6 +23,7 @@
 		var pianoFolder = 'insts/piano/'
 		var songJSON = ''
 		var $bongoCatImageContainer = $('#bongoCatImageContainer')
+		var bongoCatHandClearTimeout = []
 
 		// Load Instruments
 		var pianoNotes = {
@@ -68,7 +69,10 @@
 				url: 'songs/BTS-BST.json',
 				async: false // Need to fix
 			}).done(function(data) {
-				songJSON = data;
+				songJSON = data
+
+				bongoCatHandClearTimeout = new Array(songJSON.tracks.length)
+
 				$.each(songJSON.tracks, function(trackIndex, track) {
 
 					if(track.instrumentFamily == 'drums') {
@@ -80,17 +84,19 @@
 					var part = new Tone.Part(function(time, note ) {
 						piano.triggerAttackRelease(note.name, note.duration, time, note.velocity);
 
-						var imageDownIndex = Math.floor(visualizerNotes.indexOf(note.name) / 14) + 1;
+						var imageDownIndex = Math.floor(visualizerNotes.indexOf(note.name) / 15) + 1;
 
 						Tone.Draw.schedule(function() {
 							// Immediately set hands to up
 							$('#bongoCat' + trackIndex).attr('src', 'u.png')
+							clearInterval(bongoCatHandClearTimeout[trackIndex])
+
 							setTimeout(function() {
 								$('#bongoCat' + trackIndex).attr('src', 'd' + imageDownIndex + '.png')
 								// Store timeout and clear every time
-								// setTimeout(function() {
-								// 	$('#bongoCat' + trackIndex).attr('src', 'uu.png')
-								// }, Math.round(note.duration * 1000));
+								bongoCatHandClearTimeout[trackIndex] = setTimeout(function() {
+									$('#bongoCat' + trackIndex).attr('src', 'u.png')
+								}, Math.round(note.duration * 1000));
 							}, 100)
 						}, time);
 					}, track.notes).start(0)
